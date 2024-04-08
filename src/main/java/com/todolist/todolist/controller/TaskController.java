@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/tasks")
@@ -28,16 +29,30 @@ public class TaskController {
         return new ResponseEntity<>(task, HttpStatus.OK);
     }
 
-    @PostMapping
+    @PostMapping("/createTask")
     public ResponseEntity<Task> createTask(@RequestBody Task task){
         Task createdTask = taskService.createTask(task);
         return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteTask(@PathVariable Long id){
         taskService.deleteTask(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body("A task foi deletada com sucesso!");
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task updatedTask){
+        Task existingTask = taskService.getTaskById(id).orElseThrow(()-> new RuntimeException("Não foi encontrada nenhuma task com esse id "+  id));
+
+        existingTask.setTitle(updatedTask.getTitle());
+        existingTask.setBody(updatedTask.getBody());
+        existingTask.setDescription(updatedTask.getDescription());
+        existingTask.setItens(updatedTask.getItens());
+        existingTask.setCompleted(updatedTask.isCompleted());
+
+        Task savedTask = taskService.updateTask(id, existingTask);
+        return ResponseEntity.ok(savedTask);
     }
 
 
